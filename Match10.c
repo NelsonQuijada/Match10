@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 
-#define NUM_PLAYERS 2
+#define NUM_PLAYERS 1
 
 void fillBoard(int matrix[][9]);
 void showMatrix(int matrix[][9], int N);
+bool checkPairs(int matrix[][9], int chosenRow[2],int chosenCol[2]);
+void eliminatePair(int matrix[][9], int chosenRow[2],int chosenCol[2]);
 
 struct player {
     char name[20];
@@ -77,8 +80,27 @@ void fillBoard(int matrix[][9]) {
 void showMatrix(int matrix[][9], int rows) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < 9; j++) {
-            printf("%d\t", matrix[i][j]);
+            if ( matrix[i][j] == 0){
+                prinf(" ");
+            } else printf("%d\t", matrix[i][j]);
         }
-        printf("\n");
+        printf("\n");   
     }
+}
+bool checkPairs(int matrix[][9], int chosenRow[2],int chosenCol[2]){
+
+    if (matrix[chosenRow[0]][chosenCol[0]]+ matrix[chosenRow[1]][chosenCol[1]] == 10){
+        if ((abs(chosenRow[0] - chosenRow[1]) + abs(chosenRow[0] - chosenRow[1])) == 1){
+           return 1;
+        }
+        if ((abs(chosenRow[0] - chosenRow[1]) + abs(chosenRow[0] - chosenRow[1])) !== 1){
+           return 0;
+        }    
+    }   
+}
+void eliminatePair(int matrix[][9], int chosenRow[2],int chosenCol[2]){
+    if (matrix[chosenRow[0]][chosenCol[0]] && matrix[chosenRow[1]][chosenCol[1]]){
+        matrix[chosenRow[0]][chosenCol[0]] = 0;
+        matrix[chosenRow[1]][chosenCol[1]] = 0;
+    }   
 }
