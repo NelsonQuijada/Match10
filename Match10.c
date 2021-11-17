@@ -21,7 +21,7 @@ int main() {
     int shownRows = 3;
     int board[9][9];
     fillBoard(board);
-    /**
+
     struct player totalPlayers[NUM_PLAYERS];
     printf("Bienvenidos a Match 10!\n");
 
@@ -63,13 +63,9 @@ int main() {
             }
         }
     }
-    printf("Recordar que no es la version final, entonces los puntos no estan
-    definidos y el loop es infinito.\n"); printf("Ctr+C para terminar"); **/
-    showMatrix(board, shownRows);
-    bool a;
-    a = checkMatrix(board, shownRows);
-
-    printf("%d", a);
+    printf("Recordar que no es la version final, entonces los puntos no estan definidos y el loop es infinito.\n"); 
+    printf("Ctr+C para terminar");
+    
 }
 
 void fillBoard(int matrix[][9]) {
