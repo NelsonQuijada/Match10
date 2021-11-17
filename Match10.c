@@ -1,14 +1,14 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <stdbool.h>
 
 #define NUM_PLAYERS 1
 
 void fillBoard(int matrix[][9]);
 void showMatrix(int matrix[][9], int rows);
 bool checkMatrix(int matrix[][9], int rows);
-bool checkCorner(int matrix[][9], int i, int j);
+bool checkCorner(int matrix[][9], int i, int j, int rows);
 
 struct player {
     char name[20];
@@ -21,7 +21,7 @@ int main() {
     int shownRows = 3;
     int board[9][9];
     fillBoard(board);
-
+    /**
     struct player totalPlayers[NUM_PLAYERS];
     printf("Bienvenidos a Match 10!\n");
 
@@ -63,8 +63,13 @@ int main() {
             }
         }
     }
-    printf("Recordar que no es la version final, entonces los puntos no estan definidos y el loop es infinito.\n");
-    printf("Ctr+C para terminar");
+    printf("Recordar que no es la version final, entonces los puntos no estan
+    definidos y el loop es infinito.\n"); printf("Ctr+C para terminar"); **/
+    showMatrix(board, shownRows);
+    bool a;
+    a = checkMatrix(board, shownRows);
+
+    printf("%d", a);
 }
 
 void fillBoard(int matrix[][9]) {
@@ -84,17 +89,68 @@ void showMatrix(int matrix[][9], int rows) {
     }
 }
 
-bool checkMatrix(int matrix[][9], int rows){
-    for (int i = 0; i < rows; i++){
-        for (int j =0; j<9; j++){
-            if (i == 0 || i == rows){
-                if (j == 0 || j == 9){
-                    checkCorner(matrix, i, j);
+bool checkMatrix(int matrix[][9], int rows) {
+    bool availablepair;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (i == 0 || i == rows-1) {
+                if (j == 0 || j == 8) {
+                    availablepair = checkCorner(matrix, i, j, rows);
+                    if (availablepair == 1){
+                        return availablepair;
+                    }
                 }
             }
         }
     }
+    return availablepair;
 }
 
-bool checkCorner(int matrix[][9], int i, int j){
+bool checkCorner(int matrix[][9], int i, int j, int rows) {
+    bool result;
+    if (i == 0) {
+        if (j == 0) {
+            // Esquina superior izquierda
+            if (matrix[i][j] + matrix[i + 1][j] == 10 ||
+                matrix[i][j] + matrix[i + 1][j + 1] == 10 ||
+                matrix[i][j] + matrix[i][j + 1] == 10) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else if (j == 8) {
+            // Esquina superior derecha
+            if (matrix[i][j] + matrix[i + 1][j] == 10 ||
+                matrix[i][j] + matrix[i + 1][j - 1] == 10 ||
+                matrix[i][j] + matrix[i][j - 1] == 10) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    else if (i == rows-1) {
+        if (j == 0) {
+            // Esquina Inferior Izquierda
+            if (matrix[i][j] + matrix[i - 1][j] == 10 ||
+                matrix[i][j] + matrix[i - 1][j + 1] == 10 ||
+                matrix[i][j] + matrix[i][j + 1] == 10) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else if (j == 8) {
+            // Esquina Inferior Derecha
+            if (matrix[i][j] + matrix[i - 1][j] == 10 ||
+                matrix[i][j] + matrix[i - 1][j - 1] == 10 ||
+                matrix[i][j] + matrix[i][j - 1] == 10) {
+                return 1;
+            }
+
+            else {
+                return 0;
+            }
+        }
+    }
 }
