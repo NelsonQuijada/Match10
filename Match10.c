@@ -9,6 +9,9 @@ void fillBoard(int matrix[][9]);
 void showMatrix(int matrix[][9], int rows);
 bool checkMatrix(int matrix[][9], int rows);
 bool checkCorner(int matrix[][9], int i, int j, int rows);
+bool checkTopBotSide(int matrix[][9], int i, int j, int rows);
+bool checkLeftRightSide(int matrix[][9], int i, int j, int rows);
+bool checkNormal(int matrix[][9], int i, int j, int rows);
 
 struct player {
     char name[20];
@@ -34,38 +37,64 @@ int main() {
     }
 
     int continues = 1;
-    while (continues == 1) {
+    bool keepBoard;
 
+    while (continues == 1) {
         int chosenRow[2];
         int chosenCol[2];
 
-        for (int number = 0; number < NUM_PLAYERS; number++) {
-            printf("%s, es su turno.\n", totalPlayers[number].name);
+        keepBoard = checkMatrix(board, shownRows);
+        if (keepBoard == 1) {
+            for (int number = 0; number < NUM_PLAYERS; number++) {
+                printf("%s, es su turno.\n", totalPlayers[number].name);
 
-            for (int i = 0; i < 2; i++) {
-                printf("Este es el tablero de juego!\n");
-                showMatrix(board, shownRows);
+                for (int i = 0; i < 2; i++) {
+                    printf("Este es el tablero de juego!\n");
+                    showMatrix(board, shownRows);
 
-                printf(
-                    "Por favor, ingrese la fila del numero %d que quiere "
-                    "seleccionar: ",
-                    i + 1);
-                scanf("%d", &chosenRow[number]);
-                printf("La fila seleccionada es:\n");
-                showMatrix(board, chosenRow[number]);
+                    printf(
+                        "Por favor, ingrese la fila del numero %d que quiere "
+                        "seleccionar: ",
+                        i + 1);
+                    scanf("%d", &chosenRow[number]);
+                    printf("La fila seleccionada es:\n");
+                    showMatrix(board, chosenRow[number]);
 
-                printf("Seleccione una columna del numero %d en esta fila: ",
-                       i + 1);
-                scanf("%d", &chosenCol[number]);
+                    printf(
+                        "Seleccione una columna del numero %d en esta fila: ",
+                        i + 1);
+                    scanf("%d", &chosenCol[number]);
 
-                printf("Su seleccion numero %d es: %d\n", i + 1,
-                       board[chosenRow[number]-1][chosenCol[number]-1]);
+                    printf("Su seleccion numero %d es: %d\n", i + 1,
+                           board[chosenRow[number] - 1][chosenCol[number] - 1]);
+                }
             }
+            keepBoard = checkMatrix(board, shownRows);
+
+            if (keepBoard == 1) {
+                printf("Aun hay parejas! Sigue buscandolas...\n");
+            } else {
+                printf("Rayos! Parece que no hay parejas disponibles.");
+                printf("Agregaremos una fila para ti!\n");
+                shownRows += 1;
+            }
+        } else {
+            printf(
+                "Tienen las peores de las suertes! No hay parejas en el "
+                "tablero predeterminado :(\n");
+            printf("Agregaremos una fila para ti!\n");
+            shownRows += 1;
         }
     }
-    printf("Recordar que no es la version final, entonces los puntos no estan definidos y el loop es infinito.\n"); 
+    printf(
+        "Recordar que no es la version final, entonces los puntos no estan "
+        "definidos y el loop es infinito.\n");
     printf("Ctr+C para terminar");
-    
+    /**
+    showMatrix(board, shownRows);
+    bool a;
+    a = checkMatrix(board, shownRows);
+    printf("%d", a);**/
 }
 
 void fillBoard(int matrix[][9]) {
@@ -89,12 +118,27 @@ bool checkMatrix(int matrix[][9], int rows) {
     bool availablepair;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < 9; j++) {
-            if (i == 0 || i == rows-1) {
+            if (i == 0 || i == rows - 1) {
                 if (j == 0 || j == 8) {
                     availablepair = checkCorner(matrix, i, j, rows);
-                    if (availablepair == 1){
+                    if (availablepair == 1) {
                         return availablepair;
                     }
+                } else {
+                    availablepair = checkTopBotSide(matrix, i, j, rows);
+                    if (availablepair == 1) {
+                        return availablepair;
+                    }
+                }
+            } else if (j == 0 || j == 8) {
+                availablepair = checkLeftRightSide(matrix, i, j, rows);
+                if (availablepair == 1) {
+                    return availablepair;
+                }
+            } else {
+                availablepair = checkNormal(matrix, i, j, rows);
+                if (availablepair == 1) {
+                    return availablepair;
                 }
             }
         }
@@ -126,7 +170,7 @@ bool checkCorner(int matrix[][9], int i, int j, int rows) {
         }
     }
 
-    else if (i == rows-1) {
+    else if (i == rows - 1) {
         if (j == 0) {
             // Esquina Inferior Izquierda
             if (matrix[i][j] + matrix[i - 1][j] == 10 ||
@@ -148,5 +192,71 @@ bool checkCorner(int matrix[][9], int i, int j, int rows) {
                 return 0;
             }
         }
+    }
+}
+
+bool checkTopBotSide(int matrix[][9], int i, int j, int rows) {
+    if (i == 0) {
+        // Lado de Arriba (Sin esquinas)
+        if (matrix[i][j] + matrix[i][j - 1] == 10 ||
+            matrix[i][j] + matrix[i][j + 1] == 10 ||
+            matrix[i][j] + matrix[i + 1][j - 1] == 10 ||
+            matrix[i][j] + matrix[i + 1][j] == 10 ||
+            matrix[i][j] + matrix[i + 1][j + 1] == 10) {
+            return 1;
+        } else {
+            return 0;
+        }
+    } else if (i == rows - 1) {
+        if (matrix[i][j] + matrix[i][j - 1] == 10 ||
+            matrix[i][j] + matrix[i][j + 1] == 10 ||
+            matrix[i][j] + matrix[i - 1][j - 1] == 10 ||
+            matrix[i][j] + matrix[i - 1][j] == 10 ||
+            matrix[i][j] + matrix[i - 1][j + 1] == 10) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+}
+
+bool checkLeftRightSide(int matrix[][9], int i, int j, int rows) {
+    if (j == 0) {
+        // Columna izquierda
+        if (matrix[i][j] + matrix[i][j + 1] == 10 ||
+            matrix[i][j] + matrix[i - 1][j] == 10 ||
+            matrix[i][j] + matrix[i + 1][j] == 10 ||
+            matrix[i][j] + matrix[i + 1][j + 1] == 10 ||
+            matrix[i][j] + matrix[i - 1][j + 1] == 10) {
+            printf("%d\t", matrix[i][j] + matrix[i][j + 1]);
+            return 1;
+        } else {
+            return 0;
+        }
+
+    } else if (j == 8) {
+        // Columna derecha
+        if (matrix[i][j] + matrix[i][j - 1] == 10 ||
+            matrix[i][j] + matrix[i - 1][j] == 10 ||
+            matrix[i][j] + matrix[i + 1][j] == 10 ||
+            matrix[i][j] + matrix[i + 1][j - 1] == 10 ||
+            matrix[i][j] + matrix[i - 1][j - 1] == 10) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+}
+
+bool checkNormal(int matrix[][9], int i, int j, int rows) {
+    if (matrix[i][j] + matrix[i][j - 1] == 10 ||
+        matrix[i][j] + matrix[i - 1][j] == 10 ||
+        matrix[i][j] + matrix[i + 1][j] == 10 ||
+        matrix[i][j] + matrix[i + 1][j - 1] == 10 ||
+        matrix[i][j] + matrix[i - 1][j - 1] == 10 ||
+        matrix[i][j] + matrix[i + 1][j + 1] == 10) {
+        return 1;
+    } else {
+        return 0;
     }
 }
