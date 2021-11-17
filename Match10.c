@@ -12,6 +12,8 @@ bool checkCorner(int matrix[][9], int i, int j, int rows);
 bool checkTopBotSide(int matrix[][9], int i, int j, int rows);
 bool checkLeftRightSide(int matrix[][9], int i, int j, int rows);
 bool checkNormal(int matrix[][9], int i, int j, int rows);
+bool checkPairs(int matrix[][9], int chosenRow[2],int chosenCol[2]);
+void eliminatePair(int matrix[][9], int chosenRow[2],int chosenCol[2]);
 
 struct player {
     char name[20];
@@ -38,6 +40,7 @@ int main() {
 
     int continues = 1;
     bool keepBoard;
+    bool isValid;
 
     while (continues == 1) {
         int chosenRow[2];
@@ -56,19 +59,28 @@ int main() {
                         "Por favor, ingrese la fila del numero %d que quiere "
                         "seleccionar: ",
                         i + 1);
-                    scanf("%d", &chosenRow[number]);
+                    scanf("%d", &chosenRow[i]);
                     printf("La fila seleccionada es:\n");
-                    showMatrix(board, chosenRow[number]);
+                    showMatrix(board, chosenRow[i]);
 
                     printf(
                         "Seleccione una columna del numero %d en esta fila: ",
                         i + 1);
-                    scanf("%d", &chosenCol[number]);
+                    scanf("%d", &chosenCol[i]);
 
                     printf("Su seleccion numero %d es: %d\n", i + 1,
-                           board[chosenRow[number] - 1][chosenCol[number] - 1]);
+                           board[chosenRow[i] - 1][chosenCol[i] - 1]);
                 }
             }
+            isValid = checkPairs(board, chosenRow, chosenCol);
+            
+            if (isValid == 1){
+                printf("Felicidades! Usted ha encontrado una pareja\n");
+                eliminatePair(board, chosenRow, chosenCol);
+            } else{
+                printf("Sigue Intentadolo!\n");
+            }
+
             keepBoard = checkMatrix(board, shownRows);
 
             if (keepBoard == 1) {
@@ -259,4 +271,9 @@ bool checkNormal(int matrix[][9], int i, int j, int rows) {
     } else {
         return 0;
     }
+}
+bool checkPairs(int matrix[][9], int chosenRow[2],int chosenCol[2]){
+    }   
+void eliminatePair(int matrix[][9], int chosenRow[2],int chosenCol[2]){
+
 }
