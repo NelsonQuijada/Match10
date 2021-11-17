@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 
 #define NUM_PLAYERS 1
 
@@ -120,9 +121,11 @@ void fillBoard(int matrix[][9]) {
 void showMatrix(int matrix[][9], int rows) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < 9; j++) {
-            printf("%d\t", matrix[i][j]);
+            if ( matrix[i][j] == 0){
+                prinf(" ");
+            } else printf("%d\t", matrix[i][j]);
         }
-        printf("\n");
+        printf("\n");   
     }
 }
 
