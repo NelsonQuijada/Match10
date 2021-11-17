@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 
-#define NUM_PLAYERS 2
+#define NUM_PLAYERS 1
 
 void fillBoard(int matrix[][9]);
-void showMatrix(int matrix[][9], int N);
+void showMatrix(int matrix[][9], int rows);
+bool checkMatrix(int matrix[][9], int rows);
+bool checkCorner(int matrix[][9], int i, int j);
 
 struct player {
     char name[20];
-    int turn;
     int points;
 };
 
@@ -28,7 +30,6 @@ int main() {
                i + 1);
         scanf("%s", &totalPlayers[i].name);
 
-        totalPlayers[i].turn = i;
         totalPlayers[i].points = 0;
     }
 
@@ -81,4 +82,19 @@ void showMatrix(int matrix[][9], int rows) {
         }
         printf("\n");
     }
+}
+
+bool checkMatrix(int matrix[][9], int rows){
+    for (int i = 0; i < rows; i++){
+        for (int j =0; j<9; j++){
+            if (i == 0 || i == rows){
+                if (j == 0 || j == 9){
+                    checkCorner(matrix, i, j);
+                }
+            }
+        }
+    }
+}
+
+bool checkCorner(int matrix[][9], int i, int j){
 }
