@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define NUM_PLAYERS 1
 
@@ -89,18 +90,15 @@ void showMatrix(int matrix[][9], int rows) {
 }
 bool checkPairs(int matrix[][9], int chosenRow[2],int chosenCol[2]){
 
-    if (matrix[chosenRow[0]][chosenCol[0]]+ matrix[chosenRow[1]][chosenCol[1]] == 10){
-        if ((abs(chosenRow[0] - chosenRow[1]) + abs(chosenRow[0] - chosenRow[1])) == 1){
+    if (matrix[chosenRow[0]-1][chosenCol[0]-1]+ matrix[chosenRow[1]-1][chosenCol[1]-1] == 10){
+        if (pow(pow((chosenRow[0] - chosenRow[1]),2) + pow((chosenCol[0] - chosenCol[1]),2),0.5) == 1 || pow(pow((chosenRow[0] - chosenRow[1]),2) + pow((chosenCol[0] - chosenCol[1]),2),0.5) == pow(2,0.5)){
            return 1;
         }
-        if ((abs(chosenRow[0] - chosenRow[1]) + abs(chosenRow[0] - chosenRow[1])) !== 1){
-           return 0;
         }    
+        return 0;
     }   
-}
 void eliminatePair(int matrix[][9], int chosenRow[2],int chosenCol[2]){
-    if (matrix[chosenRow[0]][chosenCol[0]] && matrix[chosenRow[1]][chosenCol[1]]){
-        matrix[chosenRow[0]][chosenCol[0]] = 0;
-        matrix[chosenRow[1]][chosenCol[1]] = 0;
-    }   
+
+        matrix[chosenRow[0]-1][chosenCol[0]-1] = 0;
+        matrix[chosenRow[1]-1][chosenCol[1]-1] = 0;
 }
