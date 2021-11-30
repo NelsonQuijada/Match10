@@ -18,8 +18,8 @@ bool checkLeftRightSide(int matrix[][9], int i, int j,
 bool checkNormal(int matrix[][9], int i, int j,
                  int rows);  // Chequear elementos que no pertenecen a los demas
 bool checkPairs(
-    int matrix[][9], int chosenRow[2],
-    int chosenCol[2], int shownRows);  // Chequear parejas dadas para ver si son validas
+    int matrix[][9], int chosenRow[2], int chosenCol[2],
+    int shownRows);  // Chequear parejas dadas para ver si son validas
 void eliminatePair(
     int matrix[][9], int chosenRow[2],
     int chosenCol[2]);  // Eliminar una pareja una vez sea validad
@@ -92,8 +92,8 @@ int main() {
             }
 
             isValid = checkPairs(
-                board, chosenRow,
-                chosenCol, shownRows);  // Chequeamos que la pareja seleccionada sea valida
+                board, chosenRow, chosenCol,
+                shownRows);  // Chequeamos que la pareja seleccionada sea valida
 
             if (isValid == 1) {
                 // En caso de haber encontrado una pareja, se "eliminan" esas
@@ -370,7 +370,8 @@ bool checkNormal(int matrix[][9], int i, int j, int rows) {
         return 0;
     }
 }
-bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2], int shownRows) {
+bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
+                int shownRows) {
     /**
      * Reibe 3 parametros, una matriz y dos arrays. Los arrays son las
      * posiciones de los valores elegidos. Retorna 1 en caso de que las parejas
@@ -406,28 +407,58 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2], int shownRo
                                   pow((chosenCol[0] - chosenCol[1]), 2),
                               0.5)) /
                          pow(2, 0.5))) {
-            int d = (int)((pow(pow((chosenRow[0] - chosenRow[1]), 2) +
+            /**
+             * Este else if tambien ha de explicarse a profundidad, ya que una
+             * solucion compleja requiere una buena explicacion para que se
+             * entienda bien. En este else if, estamos analizando las
+             * diagonales. Sabemos que para numeros adyacentes en la diagonal la
+             * distancia es igual a √2. Ahora, Si tenemos adyacencia con (un
+             * cero de por medio), entonces la distancia no es igual a √2, es
+             * igual a k√2 donde k es un entero. Por ende d=k√2. Si despejamos:
+             * d/√2 = k. Entonces solo basta probar que d/√2 es un entero. Por
+             * eso la expresion de la derecha es el entero de la expresion
+             * izquierda. Este proceso nos asegura que solo estamos admitiendo
+             * numeros en la misma diagonal en cualquier direccion.
+             */
+            int k = (int)((pow(pow((chosenRow[0] - chosenRow[1]), 2) +
                                    pow((chosenCol[0] - chosenCol[1]), 2),
                                0.5)) /
                           pow(2, 0.5)) +
-                    1;
+                    1;  // Obtenemos k, luego le sumamos 1. Ya que si el entero
+                        // es k, la cantidad de celdas son k+1
 
-            int x1, y1, x2, y2, r1, r2;
+            int x1, y1, x2, y2, r1, r2;  // Definimos variables de utilidad
             int sum = 0;
-            bool mainDiagonal;
+            bool mainDiagonal;  // Para chequear si los dos puntos estan en la
+                                // diagonal principal
 
-            if (chosenRow[0] - 1 < chosenRow[1] - 1) {
-                x1 = chosenRow[0] - 1;
-                y1 = chosenCol[0] - 1;
+            /* Ahora, usaremos un proceso importante para determinar si el resto
+             * de numeros entre ambas elecciones son cero. Para esto, usaremos
+             * una submatriz cuadrada de nuestra matriz original. No usamos la
+             * matriz original, ya que los indices no cumplen las propiedades de
+             * la diagonal principal de una matriz. Es por ello que es necesario
+             * trasladarla. Tambien, en caso de que los dos elementos se
+             * encuentren en la diagonal secundaria es necesario hacerlo. Ahora,
+             * simplemente tenemos que encontrar los elementos en la diagonal
+             * (condicion x=y para la principal y condicion x+y=k-1 para la
+             * secundaria). Al haber encontrado estos elementos, basta con
+             * sumarlos. Si la suma es igual a 10, significa que todos los
+             * elementos de por medio son cero, caso contrario, no lo son.
+             */
+
+            if (chosenRow[0] - 1 < chosenRow[1] - 1) { //Encontramos cual de las dos elecciones va primero
+                x1 = chosenRow[0] - 1; //x1 seria el punto "mas alto" de las dos elecciones
+                y1 = chosenCol[0] - 1; //y1 corresponde a x1
                 x2 = chosenRow[1] - 1;
                 y2 = chosenCol[1] - 1;
 
+                //si y1 es menor que y2 y x1 tambien es menor que x2, significa entonces que trataremos con la diagonal principal.
                 if (y1 < y2) {
                     mainDiagonal = 1;
                 } else {
                     mainDiagonal = 0;
                 }
-            } else {
+            } else { //Simplemente es el caso contrario
                 x2 = chosenRow[0] - 1;
                 y2 = chosenCol[0] - 1;
                 x1 = chosenRow[1] - 1;
@@ -439,6 +470,7 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2], int shownRo
                     mainDiagonal = 1;
                 }
             }
+            //Ahora solo queremos encontrar cual esta mas arriba o abajo de los y, asi como hicimos con x.
             if (y1 < y2) {
                 r1 = y1;
                 r2 = y2;
@@ -446,40 +478,41 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2], int shownRo
                 r1 = y2;
                 r2 = y1;
             }
-            int** placeholderMatrix = malloc(sizeof(int*) * d);
-            for (int i = 0; i < d; i++) {
-                placeholderMatrix[i] = malloc(sizeof(int) * d);
+            //Inicializamos una matriz con memoria dinamica, ya que le pasamos un parametro no constante.
+            int** placeholderMatrix = malloc(sizeof(int*) * k);
+            for (int i = 0; i < k; i++) {
+                placeholderMatrix[i] = malloc(sizeof(int) * k);
             }
 
+            //Llenamos nuestra sub matriz, recordemos que la matriz es cuadrada, de orden k
+            // y que en dos de sus esquinas opuestas se encuentran nuestros puntos (ya sea principal o secundario)
             for (int i = x1; i <= x2; i++) {
                 for (int j = r1; j <= r2; j++) {
-                    // printf("Hello\n");
-                    // printf("%d,%d\n", i-x1,j-r1);
-                    placeholderMatrix[i - x1][j - r1] = matrix[i][j];
+                    placeholderMatrix[i - x1][j - r1] = matrix[i][j]; //Pasamos de un indice x,y a uno 0,0 ... 1,1 y asi
                 }
             }
 
-            if (mainDiagonal == 1) {
-                for (int i = 0; i < d; i++) {
-                    for (int j = 0; j < d; j++) {
+            if (mainDiagonal == 1) { //Si esta en la diagonal principal, nos interesan los elementos i==j
+                for (int i = 0; i < k; i++) {
+                    for (int j = 0; j < k; j++) {
                         if (i == j) {
-                            sum += placeholderMatrix[i][j];
+                            sum += placeholderMatrix[i][j];//Sacamos la suma de la diagonal
                         }
                     }
                 }
-            } else {
-                for (int i = 0; i < d; i++) {
-                    for (int j = 0; j < d; j++) {
-                        if ((i + j) == d - 1) {
-                            sum += placeholderMatrix[i][j];
+            } else { //Si esta en la diagonal secundaria, nos interesan los elementos que cumplen i+j=k-1
+                for (int i = 0; i < k; i++) {
+                    for (int j = 0; j < k; j++) {
+                        if ((i + j) == k - 1) {
+                            sum += placeholderMatrix[i][j];//Sacamos la suma 
                         }
                     }
                 }
             }
             if (sum > 10) {
-                return 0;
+                return 0; //Si la suma es mayor que 10, entonces hay numeros distintos a 0
             } else {
-                return 1;
+                return 1; //Si la suma es menor o igual que 10, esta todo bien.
             }
         } else if ((pow(pow((chosenRow[0] - chosenRow[1]), 2) +
                             pow((chosenCol[0] - chosenCol[1]), 2),
@@ -487,35 +520,43 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2], int shownRo
                    (int)(pow(pow((chosenRow[0] - chosenRow[1]), 2) +
                                  pow((chosenCol[0] - chosenCol[1]), 2),
                              0.5))) {
+            /**
+             * Este else if se encarga de los casos separados en cero en vertical y horizontal.
+             * La logica es similar a la anterior y aun mas sencilla. Siempre buscamos una suma
+             * de todos los elementos igual a 10 entre x1 y x2 o y1 y y2. La distancia entre n+1 celdas
+             * horizontales o verticales seria de n. Entonces, d = n. Solo hace falta probar que d es un 
+             * Entero.
+             */
             int sum = 0;
-            int x1,x2,y1,y2;
-            if(chosenRow[0] == chosenRow[1]){
-                if (chosenCol[0]<chosenCol[1]){
-                    x1 = chosenCol[0]-1;
-                    x2 = chosenCol[1]-1;
-                } else{
-                    x2 = chosenCol[0]-1;
-                    x1 = chosenCol[1]-1;
+            int x1, x2, y1, y2;
+
+            
+            if (chosenRow[0] == chosenRow[1]) {//Si estan en la misma fila
+                if (chosenCol[0] < chosenCol[1]) { //Si x1 es menor que x2 entonces x1 esta mas a la izquierda
+                    x1 = chosenCol[0] - 1;
+                    x2 = chosenCol[1] - 1;
+                } else { //caso contrario, x2 esta mas a la izquierda.
+                    x2 = chosenCol[0] - 1;
+                    x1 = chosenCol[1] - 1;
                 }
-                for(int j=x1; j<=x2;j++){
-                    sum += matrix[chosenRow[0]-1][j];
-                    printf("%d\n",sum);
+                for (int j = x1; j <= x2; j++) {
+                    sum += matrix[chosenRow[0] - 1][j]; //Sacamos la suma para este caso
                 }
-            } else if(chosenCol[0] == chosenCol[1]){
-                if (chosenRow[0]<chosenRow[1]){
-                    y1 = chosenRow[0]-1;
-                    y2 = chosenRow[1]-1;
-                } else{
-                    y2 = chosenRow[0]-1;
-                    y1 = chosenRow[1]-1;
+            } else if (chosenCol[0] == chosenCol[1]) {
+                if (chosenRow[0] < chosenRow[1]) {
+                    y1 = chosenRow[0] - 1;
+                    y2 = chosenRow[1] - 1;
+                } else {
+                    y2 = chosenRow[0] - 1;
+                    y1 = chosenRow[1] - 1;
                 }
-                for(int i=y1; i<=y2;i++){
-                    sum += matrix[i][chosenCol[0]-1];
+                for (int i = y1; i <= y2; i++) {
+                    sum += matrix[i][chosenCol[0] - 1];
                 }
             }
-            if (sum>10){
+            if (sum > 10) {
                 return 0;
-            } else{
+            } else {
                 return 1;
             }
         }
