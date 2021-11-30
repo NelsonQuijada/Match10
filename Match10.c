@@ -3,12 +3,13 @@
 #include <stdio.h>    //Libreria de input output basica
 #include <stdlib.h>   //Libreria standard
 #include <time.h>     //Tiempo, para usar rand()
+#include<conio.h>
 
 #define NUM_PLAYERS 1  // Numero de jugadores
 
 void fillBoard(int matrix[][9]);  // Para llenar la matriz con numeros
                                   // aleatorios
-void showMatrix(int matrix[][9], int rows);  // Imprimir la matriz hasta n filas
+void showMatrix(int matrix[][9], int matrixB[][9], int rows);  // Imprimir la matriz hasta n filas
 bool checkMatrix(int matrix[][9], int rows);  // Chequear posibles parejas
 bool checkCorner(int matrix[][9], int i, int j, int rows);  // Chequear esquinas
 bool checkTopBotSide(int matrix[][9], int i, int j,
@@ -19,11 +20,13 @@ bool checkNormal(int matrix[][9], int i, int j,
                  int rows);  // Chequear elementos que no pertenecen a los demas
 bool checkPairs(
     int matrix[][9], int chosenRow[2], int chosenCol[2],
-    int shownRows);  // Chequear parejas dadas para ver si son validas
+    int shownRows, int *points);  // Chequear parejas dadas para ver si son validas
 void eliminatePair(
     int matrix[][9], int chosenRow[2],
     int chosenCol[2]);  // Eliminar una pareja una vez sea validad
 bool lastNonZero(int matrix[][9], int row, int column);
+bool isEmpty(int matrix[][9]);
+int emptyRow(int matrix[][9], int emptyRows);
 
 struct player {
     char name[20];
@@ -34,9 +37,16 @@ int main() {
     srand(time(NULL));  // Inicializamos aleatoreidad
 
     int shownRows = 3;  // El juego comienza con 3 filas
-    int board[9][9];    // Defininimos la matriz de juego
+    int board[10][9];    // Defininimos la matriz de juego
     fillBoard(board);   // Llenamos la matriz de numeros aleatorios a traves de
                         // fillboard
+    int copyboard[10][9];
+    for(int i=0; i<10; i++){
+        for(int j=0; j<9; j++){
+            copyboard[i][j] = board[i][j];
+        }
+    }
+
 
     struct player totalPlayers[NUM_PLAYERS];  // Por si hay mas de un jugador
     printf("Bienvenidos a Match 10!\n");
@@ -54,17 +64,24 @@ int main() {
     bool keepBoard;     // Variable para ver si se mantiene el tablero, o se
                         // agregan filas
     bool isValid;       // Variable para saber si una pareja es valida
+    bool stopcheck = 0;
+    int emptyRows=0;
 
     while (continues == 1) {
+        int addedPoints =0 ;
         // El loop continua mientras continues sea 1.
         int chosenRow[2];  // Creamos un array para las elecciones del numero 1
                            // y 2 del jugador en las filas
         int chosenCol[2];  // Creamos un array para las elecciones del numero 1
                            // y 2 del jugador en las columnas
 
-        keepBoard = checkMatrix(
+        if(stopcheck==1){
+            keepBoard = 1;
+        } else{
+            keepBoard = checkMatrix(
             board,
             shownRows);  // Chequea si aun hay parejas disponibles en la matriz
+        }
 
         if (keepBoard == 1) {
             // El tablero no se cambia y el juego inicia
@@ -72,8 +89,8 @@ int main() {
                 printf("%s, es su turno.\n", totalPlayers[number].name);
 
                 for (int i = 0; i < 2; i++) {
-                    printf("Este es el tablero de juego!\n");
-                    showMatrix(board, shownRows);
+                    
+                    showMatrix(board, copyboard, shownRows);
                     // Se selecciona la fila del primer/sengundo numero
                     printf(
                         "Por favor, ingrese la fila del numero %d que quiere "
@@ -81,39 +98,47 @@ int main() {
                         i + 1);
                     scanf("%d", &chosenRow[i]);
                     printf("La fila seleccionada es:\n");
-                    showMatrix(board, chosenRow[i]);
+                    showMatrix(board, copyboard, chosenRow[i]);
                     // Se selecciona la columna del primer/segundo numero
                     printf(
                         "Seleccione una columna del numero %d en esta fila: ",
                         i + 1);
                     scanf("%d", &chosenCol[i]);
-
+                    system("clear");
                     printf("Su seleccion numero %d es: %d\n", i + 1,
                            board[chosenRow[i] - 1][chosenCol[i] - 1]);
                 }
             }
-            if(chosenRow[0]==chosenRow[1] && chosenCol[0]==chosenCol[1]){
-                printf("No puede seleccionar la misma casilla dos veces!\n");
-            } else if(board[chosenRow[0]-1][chosenCol[0]-1] == 0 || board[chosenRow[1]-1][chosenCol[1]-1] == 0){
+            system("clear");
+            if(board[chosenRow[0]-1][chosenCol[0]-1] == 0 || board[chosenRow[1]-1][chosenCol[1]-1] == 0){
                 printf("No puedes seleccionar una casilla vacia!\n");
             }
             else{
             isValid = checkPairs(
                 board, chosenRow, chosenCol,
-                shownRows);  // Chequeamos que la pareja seleccionada sea valida
+                shownRows, &addedPoints);  // Chequeamos que la pareja seleccionada sea valida
 
             if (isValid == 1) {
                 // En caso de haber encontrado una pareja, se "eliminan" esas
                 // casillas
                 printf("Felicidades! Usted ha encontrado una pareja\n");
                 eliminatePair(board, chosenRow, chosenCol);
+
             } else {
                 // Caso contrario, no pasa nada
                 printf("Sigue Intentadolo!\n");
             }
 
-            keepBoard = checkMatrix(
-                board, shownRows);  // Volvemos a chequear si hay parejas
+            int empty = emptyRow(board, emptyRows);
+            if( empty >= 1){
+                printf("Felicidades! Has limpiado %d fila entera!\n", empty);
+                printf("Te entregaremos %d puntos!\n", empty*10);
+                emptyRows = emptyRows + empty;
+                addedPoints += (10*empty);
+            }
+
+                keepBoard = checkMatrix(
+                board, shownRows);  // Volvemos a chequear si hay parejas            }
 
             if (keepBoard == 1) {
                 printf("Aun hay parejas! Sigue buscandolas...\n");
@@ -123,28 +148,58 @@ int main() {
                 printf("Agregaremos una fila para ti!\n");
                 shownRows += 1;  // Incrementamos las filas validas
             } else{
+                if(isEmpty(board)){
+                } else{
+                int cloneRow =0;
+
+                if (shownRows == 9)
+                {
+                     shownRows += 1;
+                }
+                showMatrix(board, copyboard, shownRows);
                 printf("Vaya! Parece ser que ya no hay mas filas en el tablero.\n");
+                printf("Puedes clonar una fila y agregarla a la fila 10!\n");
+                printf("Si deseas clonar una fila, escribe su indice, de lo contrario escribe 0: ");
+
+                scanf("%d", &cloneRow);
+                if(cloneRow ==0){
+
+                } else{
+                    for(int j=0;j<9;j++){
+                        board[9][j] = board[cloneRow-1][j];
+                    }
+                }
+                }
             }
             }
             }
         } else {
             // Caso extremo en que el tablero aparezca sin parejas iniciales
-            printf(
+            if(shownRows == 9 || shownRows == 10){
+                printf("Encuentra las parejas que faltan!\n");
+                stopcheck = 1;
+                
+            } else{
+             printf(
                 "Tienen las peores de las suertes! No hay parejas en el "
                 "tablero predeterminado :(\n");
             printf("Agregaremos una fila para ti!\n");
-            shownRows += 1;  // Incrementamos las filas validas
+            shownRows += 1;  // Incrementamos las filas validas   
+            }
+        }
+        printf("\033[32m" "Has recibido %d punto(s)." "\033[0m\n", addedPoints);
+        totalPlayers[0].points += addedPoints;
+
+        if(isEmpty(board)){
+            printf("Felicidades! Has encontrado todas las parejas del juego.\n");
+            printf("Recibiras 150 puntos!");
+            totalPlayers[0].points += 150;
+            printf("%s fue un placer jugar contigo!\n", totalPlayers[0].name);
+            printf("Tu puntaje fue de %d puntos", totalPlayers[0].points);
+
+            continues = 0;
         }
     }
-    printf(
-        "Recordar que no es la version final, entonces los puntos no estan "
-        "definidos y el loop es infinito.\n");
-    printf("Ctr+C para terminar");
-    /**
-    showMatrix(board, shownRows);
-    bool a;
-    a = checkMatrix(board, shownRows);
-    printf("%d", a);**/
 }
 
 void fillBoard(int matrix[][9]) {
@@ -158,22 +213,33 @@ void fillBoard(int matrix[][9]) {
             matrix[i][j] =rand() % (9 - 1 + 1) + 1;  // Numeros aleatorios entre 1 y 9
         }
     }
+    for(int j=0; j<9;j++){
+        matrix[9][j]=0;
+    }
 }
 
-void showMatrix(int matrix[][9], int rows) {
+void showMatrix(int matrix[][9],int matrixB[][9], int rows) {
     /**
      * Esta funcion recibe una matriz y un entero.
      * Lo que la funcion hace es imprimir la matriz hasta cierto valor "rows".
      */
     for (int i = 0; i < rows; i++) {
+        printf("\033[36m" "-------------------------------------------------------\n" "\033[0m");
         for (int j = 0; j < 9; j++) {
             if(matrix[i][j] == 0){
-                printf(" \t");
+                printf("\033[31m" "|  %d  " "\033[0m", matrixB[i][j]);
             }else{
-                printf("%d\t", matrix[i][j]);
+                if(j ==8){
+                printf("\033[36m" "|  %d  |" "\033[0m", matrix[i][j]);
+                } else{
+                printf("\033[36m" "|  %d  " "\033[0m", matrix[i][j]);
+                }
             }
         }
         printf("\n");
+        if(i == rows-1){
+                printf("\033[36m" "-------------------------------------------------------\n" "\033[0m");
+            }
     }
 }
 
@@ -386,7 +452,7 @@ bool checkNormal(int matrix[][9], int i, int j, int rows) {
     }
 }
 bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
-                int shownRows) {
+                int shownRows, int *addedPoints) {
     /**
      * Reibe 3 parametros, una matriz y dos arrays. Los arrays son las
      * posiciones de los valores elegidos. Retorna 1 en caso de que las parejas
@@ -414,6 +480,7 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
            Ahora, si la distancia nos da √2, entonces es diagonal y tambien
            adyacente, sea a cualquier direccion.
            **/
+          *addedPoints = 1;
             return 1;
         } else if ((pow(pow((chosenRow[0] - chosenRow[1]), 2) +
                             pow((chosenCol[0] - chosenCol[1]), 2),
@@ -526,6 +593,7 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
                 }
             }
             if (sum-matrix[x1][y1]-matrix[x2][y2] == 0) {
+                *addedPoints = 4;
                 return 1; //Si la suma es mayor que 10, entonces hay numeros distintos a 0
             } else {
                 return 0; //Si la suma es menor o igual que 10, esta todo bien.
@@ -548,7 +616,6 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
 
             
             if (chosenRow[0] == chosenRow[1]) {//Si estan en la misma fila
-            printf("In1");
                 if (chosenCol[0] < chosenCol[1]) { //Si x1 es menor que x2 entonces x1 esta mas a la izquierda
                     x1 = chosenCol[0] - 1;
                     x2 = chosenCol[1] - 1;
@@ -560,6 +627,7 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
                     sum += matrix[chosenRow[0] - 1][j]; //Sacamos la suma para este caso
                 }
                 if (sum-matrix[chosenRow[0]-1][x1]-matrix[chosenRow[0]-1][x2] == 0) {
+                    *addedPoints = 4;
                 return 1;
             } else {
                 return 0;
@@ -576,6 +644,7 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
                     sum += matrix[i][chosenCol[0] - 1];
                 }
                 if (sum-matrix[y1][chosenCol[0]-1]-matrix[y2][chosenCol[0]-1] == 0) {
+                    *addedPoints = 4;
                 return 1;
             } else {
                 return 0;
@@ -592,13 +661,19 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
                 x2=chosenRow[0]-1;
                 x1=chosenRow[1]-1;
             }
-
+            int counter =0;
             if(lastNonZero(matrix, chosenRow[0]-1, chosenCol[0]-1)){
                 if(x1 == chosenRow[0]-1){
                     for(int i = x1+1; i == x2;i++){
                         for(int j=0;j<9;j++){
+                            counter++;
                             if(matrix[i][j] != 0){
                                 if(i==x2 && j==chosenCol[1]-1){
+                                    if(counter ==1){
+                                        *addedPoints = 2;
+                                    } else{
+                                        *addedPoints = 4;
+                                    }
                                     return 1;
                                 } else{
                                     return 0;
@@ -614,8 +689,14 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
                 if(x1 == chosenRow[1]-1){
                     for(int i = x1+1; i == x2;i++){
                         for(int j=0;j<9;j++){
+                            counter++;
                             if(matrix[i][j] != 0){
                                 if(i==x2 && j==chosenCol[0]-1){
+                                    if(counter ==1){
+                                        *addedPoints = 2;
+                                    } else{
+                                        *addedPoints = 4;
+                                    }
                                     return 1;
                                 } else{
                                     return 0;
@@ -648,6 +729,42 @@ bool lastNonZero(int matrix[][9], int row, int column){
     }
     if(column == last){
         return 1;
+    } else{
+        return 0;
+    }
+}
+
+bool isEmpty(int matrix[][9]){
+    for(int i=0; i<9;i++){
+        for(int j=0;j<9;j++){
+            if(matrix[i][j] != 0){
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int emptyRow(int matrix[][9], int emptyRows){
+    int totalEmpty = 0;
+    int counter = 0;
+    int result = 0;
+
+    for(int i=0; i<9;i++){
+        counter = 0;
+        for(int j=0; j<9;j++){
+            if(matrix[i][j] == 0){
+                counter++;
+            }
+
+            if(counter == 9){
+                totalEmpty++;
+            }
+        }
+    }
+    if(totalEmpty>emptyRows){
+        result = totalEmpty-emptyRows;
+        return result;
     } else{
         return 0;
     }
