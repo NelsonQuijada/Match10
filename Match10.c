@@ -23,6 +23,7 @@ bool checkPairs(
 void eliminatePair(
     int matrix[][9], int chosenRow[2],
     int chosenCol[2]);  // Eliminar una pareja una vez sea validad
+bool lastNonZero(int matrix[][9], int row, int column);
 
 struct player {
     char name[20];
@@ -64,6 +65,7 @@ int main() {
         keepBoard = checkMatrix(
             board,
             shownRows);  // Chequea si aun hay parejas disponibles en la matriz
+
         if (keepBoard == 1) {
             // El tablero no se cambia y el juego inicia
             for (int number = 0; number < NUM_PLAYERS; number++) {
@@ -90,7 +92,12 @@ int main() {
                            board[chosenRow[i] - 1][chosenCol[i] - 1]);
                 }
             }
-
+            if(chosenRow[0]==chosenRow[1] && chosenCol[0]==chosenCol[1]){
+                printf("No puede seleccionar la misma casilla dos veces!\n");
+            } else if(board[chosenRow[0]-1][chosenCol[0]-1] == 0 || board[chosenRow[1]-1][chosenCol[1]-1] == 0){
+                printf("No puedes seleccionar una casilla vacia!\n");
+            }
+            else{
             isValid = checkPairs(
                 board, chosenRow, chosenCol,
                 shownRows);  // Chequeamos que la pareja seleccionada sea valida
@@ -111,9 +118,14 @@ int main() {
             if (keepBoard == 1) {
                 printf("Aun hay parejas! Sigue buscandolas...\n");
             } else {
+                if(shownRows<9){
                 printf("Rayos! Parece que no hay parejas disponibles.\n");
                 printf("Agregaremos una fila para ti!\n");
                 shownRows += 1;  // Incrementamos las filas validas
+            } else{
+                printf("Vaya! Parece ser que ya no hay mas filas en el tablero.\n");
+            }
+            }
             }
         } else {
             // Caso extremo en que el tablero aparezca sin parejas iniciales
@@ -143,8 +155,7 @@ void fillBoard(int matrix[][9]) {
      */
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
-            matrix[i][j] =
-                rand() % (9 - 1 + 1) + 1;  // Numeros aleatorios entre 1 y 9
+            matrix[i][j] =rand() % (9 - 1 + 1) + 1;  // Numeros aleatorios entre 1 y 9
         }
     }
 }
@@ -156,7 +167,11 @@ void showMatrix(int matrix[][9], int rows) {
      */
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < 9; j++) {
-            printf("%d\t", matrix[i][j]);
+            if(matrix[i][j] == 0){
+                printf(" \t");
+            }else{
+                printf("%d\t", matrix[i][j]);
+            }
         }
         printf("\n");
     }
@@ -380,7 +395,8 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
      */
     if (matrix[chosenRow[0] - 1][chosenCol[0] - 1] +
             matrix[chosenRow[1] - 1][chosenCol[1] - 1] ==
-        10) {
+        10 || matrix[chosenRow[0] - 1][chosenCol[0] - 1] ==
+            matrix[chosenRow[1] - 1][chosenCol[1] - 1]) {
         // El primer if chequea que sumen 10
         if (pow(pow((chosenRow[0] - chosenRow[1]), 2) +
                     pow((chosenCol[0] - chosenCol[1]), 2),
@@ -509,10 +525,10 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
                     }
                 }
             }
-            if (sum > 10) {
-                return 0; //Si la suma es mayor que 10, entonces hay numeros distintos a 0
+            if (sum-matrix[x1][y1]-matrix[x2][y2] == 0) {
+                return 1; //Si la suma es mayor que 10, entonces hay numeros distintos a 0
             } else {
-                return 1; //Si la suma es menor o igual que 10, esta todo bien.
+                return 0; //Si la suma es menor o igual que 10, esta todo bien.
             }
         } else if ((pow(pow((chosenRow[0] - chosenRow[1]), 2) +
                             pow((chosenCol[0] - chosenCol[1]), 2),
@@ -532,6 +548,7 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
 
             
             if (chosenRow[0] == chosenRow[1]) {//Si estan en la misma fila
+            printf("In1");
                 if (chosenCol[0] < chosenCol[1]) { //Si x1 es menor que x2 entonces x1 esta mas a la izquierda
                     x1 = chosenCol[0] - 1;
                     x2 = chosenCol[1] - 1;
@@ -542,6 +559,11 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
                 for (int j = x1; j <= x2; j++) {
                     sum += matrix[chosenRow[0] - 1][j]; //Sacamos la suma para este caso
                 }
+                if (sum-matrix[chosenRow[0]-1][x1]-matrix[chosenRow[0]-1][x2] == 0) {
+                return 1;
+            } else {
+                return 0;
+            }
             } else if (chosenCol[0] == chosenCol[1]) {
                 if (chosenRow[0] < chosenRow[1]) {
                     y1 = chosenRow[0] - 1;
@@ -553,11 +575,57 @@ bool checkPairs(int matrix[][9], int chosenRow[2], int chosenCol[2],
                 for (int i = y1; i <= y2; i++) {
                     sum += matrix[i][chosenCol[0] - 1];
                 }
-            }
-            if (sum > 10) {
-                return 0;
-            } else {
+                if (sum-matrix[y1][chosenCol[0]-1]-matrix[y2][chosenCol[0]-1] == 0) {
                 return 1;
+            } else {
+                return 0;
+            }
+            }
+        }
+        else if(lastNonZero(matrix, chosenRow[0]-1, chosenCol[0]-1) || lastNonZero(matrix, chosenRow[1]-1, chosenCol[1]-1)){
+            int x1;
+            int x2;
+            if(chosenRow[0]<chosenRow[1]){
+                x1=chosenRow[0]-1;
+                x2=chosenRow[1]-1;
+            } else{
+                x2=chosenRow[0]-1;
+                x1=chosenRow[1]-1;
+            }
+
+            if(lastNonZero(matrix, chosenRow[0]-1, chosenCol[0]-1)){
+                if(x1 == chosenRow[0]-1){
+                    for(int i = x1+1; i == x2;i++){
+                        for(int j=0;j<9;j++){
+                            if(matrix[i][j] != 0){
+                                if(i==x2 && j==chosenCol[1]-1){
+                                    return 1;
+                                } else{
+                                    return 0;
+                                }
+                            }
+                        }
+                    }
+                } else{
+                    return 0;
+                }
+                
+            } else{
+                if(x1 == chosenRow[1]-1){
+                    for(int i = x1+1; i == x2;i++){
+                        for(int j=0;j<9;j++){
+                            if(matrix[i][j] != 0){
+                                if(i==x2 && j==chosenCol[0]-1){
+                                    return 1;
+                                } else{
+                                    return 0;
+                                }
+                            }
+                        }
+                    }
+                } else{
+                    return 0;
+                }
             }
         }
     }
@@ -569,4 +637,18 @@ void eliminatePair(int matrix[][9], int chosenRow[2], int chosenCol[2]) {
 
     matrix[chosenRow[0] - 1][chosenCol[0] - 1] = 0;
     matrix[chosenRow[1] - 1][chosenCol[1] - 1] = 0;
+}
+
+bool lastNonZero(int matrix[][9], int row, int column){
+    int last = 0;
+    for(int j=0; j<9;j++){
+        if(matrix[row][j] !=0){
+            last = j;
+        }
+    }
+    if(column == last){
+        return 1;
+    } else{
+        return 0;
+    }
 }
